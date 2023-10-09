@@ -9,22 +9,8 @@ rm -rf build CMakeUserPresets.json
 mkdir build && cd build
 
 conan install .. --output-folder=. --build=missing -s build_type=Debug
-
-# conan install . --profile=default --output-folder=build --build=missing
-
-# mkdir build
-
-# 3. Change directory to the build folder
-# cd build
-
-# 4. Configure the project using CMake
-# cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
 cmake -DCMAKE_CONFIGURATION_TYPES=Debug -DCMAKE_BUILD_TYPE=Debug .. -G "Unix Makefiles"
-# cmake -DCMAKE_CONFIGURATION_TYPES=Debug -DCMAKE_BUILD_TYPE=Debug .. -G "Xcode"
 
 # 5. Build the project using CMake
 cmake --build .
-# cmake --build . --config Debug
-
-# chmod +x build_linux.sh
 
