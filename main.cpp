@@ -13,13 +13,14 @@
 
 std::string LOG_FILE_PATH = "/Users/user/Downloads/today/oct_5/RTLite+Logger/Client/build/m_RTLite.log";
 std::string LICENSE_FOLDER_PATH = "/Users/user/Downloads/today/oct_5/RTLite+Logger/Client/xmls/";
+std::string RT_LITE_EXEC_PATH = "/Users/user/Downloads/today/oct_5/RTLite+Logger/Client/build/";
 std::string CLOUD_CONNECTOR_EXEC_PATH = "/Users/user/Downloads/today/oct_5/RTCloudConnector/Server/build/";
 std::string INVALID_LICENSE_MSG = "Invalid License Key!";
 std::string VALIDATED_LICENSE_MSG = "License has been successfully validated.";
 
 namespace bp = boost::process;
-// Global variable to store the child process
-bp::child cloudConnectorProcess;
+bp::child cloudConnectorProcess;  // Global variable to store the server process
+
 
 // Helper function to clear/reset the log file
 void ClearLogFile() {
@@ -93,49 +94,43 @@ bool IsStringInFile(const std::string& filePath, const std::string& searchString
     return false;  // String not found in the file
 }
 
-std::string RunRTLite(const std::vector<std::string>& args) {
+bool RunRTLiteAndCheckLicense(const std::vector<std::string>& args, std::string expectedMsg) {
     bp::ipstream out;
     bp::ipstream err;
 
-    // Construct the command for running RTLite
-    std::string cmd = "./RTLite"; // Assuming RTLite is in the current working directory
+    std::string cmd = "./RTLite";
     for (const std::string& arg : args) {
         cmd += " " + arg;
     }
 
     BOOST_TEST_MESSAGE("Running command: " << cmd);
-    // Change the working directory to the build directory
-    std::string buildDir = "/Users/user/Downloads/today/oct_5/RTLite+Logger/Client/build/";
+    std::string buildDir = RT_LITE_EXEC_PATH;
     if (chdir(buildDir.c_str()) != 0) {
         BOOST_FAIL("Failed to change working directory to: " << buildDir);
-        return "";
+        return false;
     }
 
     // Run RTLite with the specified arguments
+    // bp::child c(cmd, bp::std_out > out, bp::std_err > err);
     bp::child c(cmd, bp::std_out > out, bp::std_err > err);
-
-    // Sleep for the specified duration (e.g., 5 seconds)
-    std::this_thread::sleep_for(std::chrono::seconds(50));
+    bool isFoundExpectedMsg = false;
+    for(int i = 0; i<6; i++) {
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        isFoundExpectedMsg =  IsStringInFile(LOG_FILE_PATH, expectedMsg);
+        if(isFoundExpectedMsg) {
+            BOOST_TEST_MESSAGE("isFoundExpectedMsg: " << isFoundExpectedMsg);
+            break;
+        }
+    }
 
     // Send a termination signal to RTLite
     c.terminate();
-
-    // Wait for the child process to finish
-    int exitCode = c.exit_code();
-
-    if (exitCode == 0) {
-        return "";
-    } else {
-        BOOST_TEST_MESSAGE("RTLite Exit Code: " << exitCode);
-        return "";
-    }
+    c.wait();
+    return isFoundExpectedMsg;
 }
 
-std::string RunCloudConnector(const std::vector<std::string>& args) {
-    bp::ipstream out;
-    bp::ipstream err;
 
-    // Construct the command for running RTCloudConnector
+void StartCloudConnector(const std::vector<std::string>& args) {
     std::string cmd = "./RTCloudConnector"; // Assuming RTCloudConnector is in the current working directory
     for (const std::string& arg : args) {
         cmd += " " + arg;
@@ -143,25 +138,20 @@ std::string RunCloudConnector(const std::vector<std::string>& args) {
 
     BOOST_TEST_MESSAGE("Running command: " << cmd);
 
-    // Change the working directory to the build directory
     std::string buildDir = CLOUD_CONNECTOR_EXEC_PATH;
     if (chdir(buildDir.c_str()) != 0) {
         BOOST_FAIL("Failed to change working directory to: " << buildDir);
-        return "";
+        return;
     }
 
-    // Run RTCloudConnector with the specified arguments
-    cloudConnectorProcess = bp::child(cmd, bp::std_out > out, bp::std_err > err);
-
-    // Sleep for the specified duration (e.g., 5 seconds)
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-
-    // Return any relevant output here
-
-    return "";
+    // Run RTCloudConnector with the specified arguments in a separate thread
+    std::thread([cmd]() {
+        cloudConnectorProcess = bp::child(cmd, bp::std_out > bp::null, bp::std_err > bp::null);
+        cloudConnectorProcess.wait();
+    }).detach();
 }
 
-void StopCloudConnector(){
+void StopCloudConnector() {
     if (cloudConnectorProcess.running()) {
         BOOST_TEST_MESSAGE("Stopping RTCloudConnector...");
         cloudConnectorProcess.terminate(); // Terminate the process
@@ -171,14 +161,37 @@ void StopCloudConnector(){
     }
 }
 
+
 BOOST_AUTO_TEST_CASE(Valid_License_Test_Case) {
     ClearLogFile();
     UpdateLicense("demo_license");
-    std::vector<std::string> args = {"127.0.0.1", "2033", "trace"};
-    RunRTLite(args);
-    BOOST_CHECK(IsStringInFile(LOG_FILE_PATH, VALIDATED_LICENSE_MSG));
+    //start cloudConnector
+    std::vector<std::string> cloudConnectorArgs = {"2033", "trace"};
+    StartCloudConnector(cloudConnectorArgs);
 
-    // std::vector<std::string> cloudConnectorArgs = {"2033", "trace"};
-    // RunCloudConnector(cloudConnectorArgs);
-    // StopCloudConnector();
+    // Sleep to ensure the server has time to start
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    //start RTLite
+    std::vector<std::string> args = {"127.0.0.1", "2033", "trace"};
+    bool isFoundExpectedMsg = RunRTLiteAndCheckLicense(args, VALIDATED_LICENSE_MSG);
+    BOOST_CHECK(isFoundExpectedMsg);
+    //stop cloudConnector
+    StopCloudConnector();
+}
+
+BOOST_AUTO_TEST_CASE(InValid_License_Test_Case) {
+    ClearLogFile();
+    UpdateLicense("demo_license_invalid");
+    //start cloudConnector
+    std::vector<std::string> cloudConnectorArgs = {"2033", "trace"};
+    StartCloudConnector(cloudConnectorArgs);
+
+    // Sleep to ensure the server has time to start
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    //start RTLite
+    std::vector<std::string> args = {"127.0.0.1", "2033", "trace"};
+    bool isFoundExpectedMsg = RunRTLiteAndCheckLicense(args, INVALID_LICENSE_MSG);
+    BOOST_CHECK(isFoundExpectedMsg);
+    //stop cloudConnector
+    StopCloudConnector();
 }
