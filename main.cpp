@@ -10,12 +10,16 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-namespace bp = boost::process;
 
 std::string LOG_FILE_PATH = "/Users/user/Downloads/today/oct_5/RTLite+Logger/Client/build/m_RTLite.log";
 std::string LICENSE_FOLDER_PATH = "/Users/user/Downloads/today/oct_5/RTLite+Logger/Client/xmls/";
+std::string CLOUD_CONNECTOR_EXEC_PATH = "/Users/user/Downloads/today/oct_5/RTCloudConnector/Server/build/";
 std::string INVALID_LICENSE_MSG = "Invalid License Key!";
 std::string VALIDATED_LICENSE_MSG = "License has been successfully validated.";
+
+namespace bp = boost::process;
+// Global variable to store the child process
+bp::child cloudConnectorProcess;
 
 // Helper function to clear/reset the log file
 void ClearLogFile() {
@@ -89,8 +93,6 @@ bool IsStringInFile(const std::string& filePath, const std::string& searchString
     return false;  // String not found in the file
 }
 
-
-// Helper function to run RTLite and capture its output
 std::string RunRTLite(const std::vector<std::string>& args) {
     bp::ipstream out;
     bp::ipstream err;
@@ -129,10 +131,54 @@ std::string RunRTLite(const std::vector<std::string>& args) {
     }
 }
 
+std::string RunCloudConnector(const std::vector<std::string>& args) {
+    bp::ipstream out;
+    bp::ipstream err;
+
+    // Construct the command for running RTCloudConnector
+    std::string cmd = "./RTCloudConnector"; // Assuming RTCloudConnector is in the current working directory
+    for (const std::string& arg : args) {
+        cmd += " " + arg;
+    }
+
+    BOOST_TEST_MESSAGE("Running command: " << cmd);
+
+    // Change the working directory to the build directory
+    std::string buildDir = CLOUD_CONNECTOR_EXEC_PATH;
+    if (chdir(buildDir.c_str()) != 0) {
+        BOOST_FAIL("Failed to change working directory to: " << buildDir);
+        return "";
+    }
+
+    // Run RTCloudConnector with the specified arguments
+    cloudConnectorProcess = bp::child(cmd, bp::std_out > out, bp::std_err > err);
+
+    // Sleep for the specified duration (e.g., 5 seconds)
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+
+    // Return any relevant output here
+
+    return "";
+}
+
+void StopCloudConnector(){
+    if (cloudConnectorProcess.running()) {
+        BOOST_TEST_MESSAGE("Stopping RTCloudConnector...");
+        cloudConnectorProcess.terminate(); // Terminate the process
+        cloudConnectorProcess.wait();      // Wait for the process to finish
+    } else {
+        BOOST_FAIL("RTCloudConnector not running");
+    }
+}
+
 BOOST_AUTO_TEST_CASE(Valid_License_Test_Case) {
     ClearLogFile();
     UpdateLicense("demo_license");
     std::vector<std::string> args = {"127.0.0.1", "2033", "trace"};
     RunRTLite(args);
     BOOST_CHECK(IsStringInFile(LOG_FILE_PATH, VALIDATED_LICENSE_MSG));
+
+    // std::vector<std::string> cloudConnectorArgs = {"2033", "trace"};
+    // RunCloudConnector(cloudConnectorArgs);
+    // StopCloudConnector();
 }
