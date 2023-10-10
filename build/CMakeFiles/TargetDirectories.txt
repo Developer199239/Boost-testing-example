@@ -1,0 +1,4 @@
+/Users/user/Downloads/today/oct_5/RTLite+Logger/testing/build/CMakeFiles/MyTestSuite.dir
+/Users/user/Downloads/today/oct_5/RTLite+Logger/testing/build/CMakeFiles/test.dir
+/Users/user/Downloads/today/oct_5/RTLite+Logger/testing/build/CMakeFiles/edit_cache.dir
+/Users/user/Downloads/today/oct_5/RTLite+Logger/testing/build/CMakeFiles/rebuild_cache.dir

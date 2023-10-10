@@ -1,0 +1,1 @@
+. "/Users/user/Downloads/today/oct_5/RTLite+Logger/testing/build/deactivate_conanbuildenv-debug-x86_64.sh"

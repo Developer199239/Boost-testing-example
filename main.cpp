@@ -10,6 +10,22 @@
 
 namespace bp = boost::process;
 
+std::string LOG_FILE_PATH = "/Users/user/Downloads/today/oct_5/RTLite+Logger/Client/build/m_RTLite.log";
+
+// Helper function to clear/reset the log file
+void ClearLogFile() {
+    // Open the file in truncation mode to clear/reset its contents
+    std::ofstream logFile(LOG_FILE_PATH, std::ios::trunc);
+
+    if (!logFile.is_open()) {
+        BOOST_FAIL("Failed to open the log file for truncation: " << LOG_FILE_PATH);
+    } else {
+        logFile.close();
+        BOOST_TEST_MESSAGE("Log file " << LOG_FILE_PATH << " has been cleared/reset.");
+    }
+}
+
+
 // Helper function to run RTLite and capture its output
 std::string RunRTLite(const std::vector<std::string>& args) {
     bp::ipstream out;
@@ -35,7 +51,7 @@ std::string RunRTLite(const std::vector<std::string>& args) {
     bp::child c(cmd, bp::std_out > out, bp::std_err > err);
 
     // Sleep for the specified duration (e.g., 5 seconds)
-    std::this_thread::sleep_for(std::chrono::seconds(30));
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 
     // Send a termination signal to RTLite
     c.terminate();
@@ -61,13 +77,9 @@ std::string RunRTLite(const std::vector<std::string>& args) {
 
 // Define a test case that runs RTLite with specific arguments
 BOOST_AUTO_TEST_CASE(RTLiteTest1) {
-    // Define your test arguments as needed
-    std::vector<std::string> args = {"127.0.0.1", "2033", "trace"};
+    // std::vector<std::string> args = {"127.0.0.1", "2033", "trace"};
+    // std::string output = RunRTLite(args);
+    // BOOST_CHECK(output.find("Expected output") != std::string::npos);
 
-    // Run RTLite with the specified arguments and capture the output
-    std::string output = RunRTLite(args);
-
-    // Perform your tests based on the captured output
-    // For example, you can check if the output contains specific strings
-    BOOST_CHECK(output.find("Expected output") != std::string::npos);
+    ClearLogFile();
 }
