@@ -35,7 +35,7 @@ void ClearLogFile() {
     }
 }
 
-void UpdateLicense(std::string newLicense){
+void UpdateLicense(std::string propertyID, std::string license_key){
     if (!std::filesystem::exists(LICENSE_FOLDER_PATH) || !std::filesystem::is_directory(LICENSE_FOLDER_PATH))
     {
        BOOST_FAIL("Failed to open License folder: " << LICENSE_FOLDER_PATH); 
@@ -58,7 +58,8 @@ void UpdateLicense(std::string newLicense){
                     read_xml(licenseXmlPath, tree);
 
                     // Modify the 'propertyID' in the tree
-                    tree.put("sitekey.license_key", newLicense);
+                    tree.put("sitekey.<xmlattr>.propertyID", propertyID);
+                    tree.put("sitekey.license_key", license_key);
 
                     // Save the modified tree back to the XML file
                     write_xml(licenseXmlPath, tree);
@@ -164,7 +165,7 @@ void StopCloudConnector() {
 
 BOOST_AUTO_TEST_CASE(Valid_License_Test_Case) {
     ClearLogFile();
-    UpdateLicense("demo_license");
+    UpdateLicense("64","demo_license");
     //start cloudConnector
     std::vector<std::string> cloudConnectorArgs = {"2033", "trace"};
     StartCloudConnector(cloudConnectorArgs);
@@ -181,7 +182,7 @@ BOOST_AUTO_TEST_CASE(Valid_License_Test_Case) {
 
 BOOST_AUTO_TEST_CASE(InValid_License_Test_Case) {
     ClearLogFile();
-    UpdateLicense("demo_license_invalid");
+    UpdateLicense("64","demo_license_invalid");
     //start cloudConnector
     std::vector<std::string> cloudConnectorArgs = {"2033", "trace"};
     StartCloudConnector(cloudConnectorArgs);
@@ -191,6 +192,24 @@ BOOST_AUTO_TEST_CASE(InValid_License_Test_Case) {
     //start RTLite
     std::vector<std::string> args = {"127.0.0.1", "2033", "trace"};
     bool isFoundExpectedMsg = RunRTLiteAndCheckLicense(args, INVALID_LICENSE_MSG);
+    BOOST_CHECK(isFoundExpectedMsg);
+    //stop cloudConnector
+    StopCloudConnector();
+}
+
+BOOST_AUTO_TEST_CASE(Large_License_Key_Test_Case) {
+    ClearLogFile();
+    std::string largeKey = "5rul86Oxox07wqWLvpUI1lgAeSLw7jFCHqRgqiaPmmqnnmKCEaplosZerIPZeV8026K8Rmjbc3uCiFcJow2o7lRXcrvNuVsclBMR";
+    UpdateLicense("100",largeKey);
+    //start cloudConnector
+    std::vector<std::string> cloudConnectorArgs = {"2033", "trace"};
+    StartCloudConnector(cloudConnectorArgs);
+
+    // Sleep to ensure the server has time to start
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    //start RTLite
+    std::vector<std::string> args = {"127.0.0.1", "2033", "trace"};
+    bool isFoundExpectedMsg = RunRTLiteAndCheckLicense(args, VALIDATED_LICENSE_MSG);
     BOOST_CHECK(isFoundExpectedMsg);
     //stop cloudConnector
     StopCloudConnector();
