@@ -3,12 +3,9 @@
 #include <thread>
 #include <iostream>
 #include <boost/asio.hpp>
-
+#include "test_functions.hpp"
 using namespace boost::asio;
 
-int add(int a, int b) {
-    return a + b;
-}
 
 BOOST_AUTO_TEST_CASE(test_subtraction2) {
     int result = add(5, -3);
