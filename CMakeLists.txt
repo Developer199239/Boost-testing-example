@@ -104,8 +104,7 @@ else()
   set(CMAKE_INSTALL_PREFIX "${CMAKE_HOME_DIRECTORY}/release" CACHE PATH "Default install path" FORCE)
 endif()
 
-# Add an executable for the test suite
-add_executable(MyTestSuite main.cpp)
+add_executable(MyTestSuite test_main.cpp test_1.cpp test_2.cpp)
 
 # Link the test executable with Boost.Test
 target_link_libraries(MyTestSuite Boost::unit_test_framework)
@@ -118,6 +117,7 @@ enable_testing()
 
 # Add the test executable as a test
 add_test(NAME MyTestSuite COMMAND MyTestSuite)
+
 
 # Create a custom command to run the tests
 add_custom_command(
