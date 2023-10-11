@@ -104,8 +104,8 @@ else()
   set(CMAKE_INSTALL_PREFIX "${CMAKE_HOME_DIRECTORY}/release" CACHE PATH "Default install path" FORCE)
 endif()
 
-# add_executable(MyTestSuite LicenseChecker.cpp CommonFunction.cpp Constants.cpp)
-add_executable(MyTestSuite AdapterInitailationTest.cpp CommonFunction.cpp Constants.cpp)
+# Add the test executable, including test_main.cpp
+add_executable(MyTestSuite test_main.cpp LicenseChecker.cpp AdapterInitailationTest.cpp CommonFunction.cpp Constants.cpp)
 
 # Link the test executable with Boost.Test
 target_link_libraries(MyTestSuite Boost::unit_test_framework)
@@ -118,7 +118,6 @@ enable_testing()
 
 # Add the test executable as a test
 add_test(NAME MyTestSuite COMMAND MyTestSuite)
-
 
 # Create a custom command to run the tests and capture the results
 add_custom_command(

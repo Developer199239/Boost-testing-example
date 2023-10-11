@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE MyTestSuite
 #include <boost/test/unit_test.hpp>
 #include <boost/process.hpp>
 #include <iostream>

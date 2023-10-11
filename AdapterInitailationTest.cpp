@@ -1,4 +1,3 @@
-#define BOOST_TEST_MODULE MyTestSuite
 #include <boost/test/unit_test.hpp>
 #include <boost/process.hpp>
 #include <iostream>
@@ -79,22 +78,6 @@ BOOST_AUTO_TEST_CASE(DuVoiceVMS_Initialization_Test) {
     StopCloudConnector();
 }
 
-BOOST_AUTO_TEST_CASE(NEC_BCT_ConsolePBX_Initialization_Test) {
-    ClearLogFile(LOG_FILE_PATH);
-    //start cloudConnector
-    std::vector<std::string> cloudConnectorArgs = {"2033", "trace"};
-    StartCloudConnector(cloudConnectorArgs, CLOUD_CONNECTOR_EXEC_PATH);
-
-    // Sleep to ensure the server has time to start
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-    //start RTLite
-    std::vector<std::string> args = {"127.0.0.1", "2033", "trace"};
-    std::string expectedMsg = "Instantiating Adapter: NEC-BCT-ConsolePBX";
-    bool isFoundExpectedMsg = CheckAdapterInitialization(args, expectedMsg);
-    BOOST_CHECK(isFoundExpectedMsg);
-    StopCloudConnector();
-}
-
 BOOST_AUTO_TEST_CASE(OnQ_Initialization_Test) {
     ClearLogFile(LOG_FILE_PATH);
     //start cloudConnector
@@ -106,6 +89,22 @@ BOOST_AUTO_TEST_CASE(OnQ_Initialization_Test) {
     //start RTLite
     std::vector<std::string> args = {"127.0.0.1", "2033", "trace"};
     std::string expectedMsg = "Instantiating Adapter: OnQ";
+    bool isFoundExpectedMsg = CheckAdapterInitialization(args, expectedMsg);
+    BOOST_CHECK(isFoundExpectedMsg);
+    StopCloudConnector();
+}
+
+BOOST_AUTO_TEST_CASE(NEC_BCT_ConsolePBX_Initialization_Test) {
+    ClearLogFile(LOG_FILE_PATH);
+    //start cloudConnector
+    std::vector<std::string> cloudConnectorArgs = {"2033", "trace"};
+    StartCloudConnector(cloudConnectorArgs, CLOUD_CONNECTOR_EXEC_PATH);
+
+    // Sleep to ensure the server has time to start
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    //start RTLite
+    std::vector<std::string> args = {"127.0.0.1", "2033", "trace"};
+    std::string expectedMsg = "Instantiating Adapter: NEC-BCT-ConsolePBX";
     bool isFoundExpectedMsg = CheckAdapterInitialization(args, expectedMsg);
     BOOST_CHECK(isFoundExpectedMsg);
     StopCloudConnector();
