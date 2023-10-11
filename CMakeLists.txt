@@ -120,12 +120,12 @@ enable_testing()
 add_test(NAME MyTestSuite COMMAND MyTestSuite)
 
 
-# Create a custom command to run the tests
+# Create a custom command to run the tests and capture the results
 add_custom_command(
     TARGET MyTestSuite
     POST_BUILD
-    COMMAND MyTestSuite --log_level=test_suite
-    COMMENT "Running tests..."
+    COMMAND MyTestSuite --log_level=test_suite 2>&1 | tee test_results.txt
+    COMMENT "Running tests and capturing results..."
     VERBATIM
 )
 
