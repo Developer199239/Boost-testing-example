@@ -10,17 +10,9 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include "CommonFunction.hpp"
-
-
-std::string LOG_FILE_PATH = "/Users/user/Downloads/today/oct_5/RTLite+Logger/Client/build/m_RTLite.log";
-std::string LICENSE_FOLDER_PATH = "/Users/user/Downloads/today/oct_5/RTLite+Logger/Client/xmls/";
-std::string RT_LITE_EXEC_PATH = "/Users/user/Downloads/today/oct_5/RTLite+Logger/Client/build/";
-std::string CLOUD_CONNECTOR_EXEC_PATH = "/Users/user/Downloads/today/oct_5/RTCloudConnector/Server/build/";
-std::string INVALID_LICENSE_MSG = "Invalid License Key!";
-std::string VALIDATED_LICENSE_MSG = "License has been successfully validated.";
+#include "Constants.hpp"
 
 namespace bp = boost::process;
-
 
 void UpdateLicense(std::string propertyID, std::string license_key){
     if (!std::filesystem::exists(LICENSE_FOLDER_PATH) || !std::filesystem::is_directory(LICENSE_FOLDER_PATH))
