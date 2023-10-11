@@ -197,6 +197,23 @@ BOOST_AUTO_TEST_CASE(InValid_License_Test_Case) {
     StopCloudConnector();
 }
 
+BOOST_AUTO_TEST_CASE(InValid_Property_Id_Test_Case) {
+    ClearLogFile();
+    UpdateLicense("640","demo_license_invalid");
+    //start cloudConnector
+    std::vector<std::string> cloudConnectorArgs = {"2033", "trace"};
+    StartCloudConnector(cloudConnectorArgs);
+
+    // Sleep to ensure the server has time to start
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    //start RTLite
+    std::vector<std::string> args = {"127.0.0.1", "2033", "trace"};
+    bool isFoundExpectedMsg = RunRTLiteAndCheckLicense(args, VALIDATED_LICENSE_MSG);
+    BOOST_CHECK(isFoundExpectedMsg);
+    //stop cloudConnector
+    StopCloudConnector();
+}
+
 BOOST_AUTO_TEST_CASE(Large_License_Key_Test_Case) {
     ClearLogFile();
     std::string largeKey = "5rul86Oxox07wqWLvpUI1lgAeSLw7jFCHqRgqiaPmmqnnmKCEaplosZerIPZeV8026K8Rmjbc3uCiFcJow2o7lRXcrvNuVsclBMR";
